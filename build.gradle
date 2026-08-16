@@ -16,10 +16,6 @@ repositories {
 }
 
 dependencies {
-    shadow(implementation("org.ow2.asm:asm:9.10.1"))
-    shadow(implementation("org.ow2.asm:asm-commons:9.10.1"))
-    shadow(implementation("org.ow2.asm:asm-tree:9.10.1"))
-    shadow(implementation("org.ow2.asm:asm-util:9.10.1"))
     shadow(implementation("net.fabricmc:mercury:0.6.0"))
     shadow(implementation('net.sf.jopt-simple:jopt-simple:6.0-alpha-3'))
     shadow(implementation("net.fabricmc:mapping-io:0.9.1"))
