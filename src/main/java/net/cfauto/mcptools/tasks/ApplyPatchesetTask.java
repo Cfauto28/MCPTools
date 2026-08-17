@@ -10,8 +10,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ApplyPatchesetTask extends Task{
     @Override
@@ -22,23 +26,24 @@ public class ApplyPatchesetTask extends Task{
         OptionSpec<File> rejectsArg = parser.accepts("rejects", "Directory in which to place the rejects").withRequiredArg().ofType(File.class).required();
 
         File target = null;
-        File patches = null;
+        File patchesDir = null;
         File rejects = null;
+        List<Path> patchFiles = new ArrayList<>();
 
         try {
             OptionSet options = parser.parse(args);
             target = options.valueOf(targetArg);
-            patches = options.valueOf(patchesArg);
+            patchesDir = options.valueOf(patchesArg);
             rejects = options.valueOf(rejectsArg);
         } catch (Exception ex) {
             parser.printHelpOn(System.out);
             ex.printStackTrace();
         }
 
-        if (!patches.exists()) {
-            patches.mkdir();
+        if (!patchesDir.exists()) {
+            patchesDir.mkdir();
         }
-        if (!patches.isDirectory()) {
+        if (!patchesDir.isDirectory()) {
             error("Patches directory is not a directory");
         }
         if (!target.exists()) {
@@ -55,31 +60,31 @@ public class ApplyPatchesetTask extends Task{
         }
 
 
-        log("Started Patching");
+        listAllFiles(patchesDir.toPath(), patchFiles);
+        log(patchFiles.toString());
         boolean failed = false;
-        //TODO: Find out how to make this work
-        for (File file : patches.listFiles()) {
-            if (file.getPath().endsWith(".patch")) {
-                ContextualPatch patch = ContextualPatch.create(file, target);
-                ContextualPatch.PatchReport status = patch.patch(false).iterator().next();
-                log("Patched: " + file);
-                if (status.getStatus() == ContextualPatch.PatchStatus.Patched) {
-                    status.getOriginalBackupFile().delete();
+        log("Started Patching");
+        for (Path path : patchFiles) {
+            log("Started patching: " + path);
+            if (path.toString().endsWith(".patch")) {//TODO: Find out how to make this work
+                ContextualPatch patch = ContextualPatch.create(path.toFile(), target);
+                ContextualPatch.PatchReport report = patch.patch(false).iterator().next();
+                log("Patched: " + path);
+                if (report.getStatus() == ContextualPatch.PatchStatus.Patched) {
+                    report.getOriginalBackupFile().delete();
                 } else {
                     failed = true;
-                    if (rejects != null) {
-                        File output = new File(rejects, patches.getCanonicalPath());
-                        output.getParentFile().mkdirs();
-                        output.createNewFile();
-                        FileInputStream fileInputStream = new FileInputStream(file);
-                        FileOutputStream fileOutputStream = new FileOutputStream(output);
-                        fileOutputStream.write(fileInputStream.read());
-                    }
-                    error("Failed to apply: " + file);
-                    if (status.getFailure() instanceof ParseException) {
-                        error(status.getFailure().getMessage());
+                    File output = new File(rejects, patchesDir.getCanonicalPath());
+                    output.getParentFile().mkdirs();
+                    output.createNewFile();
+                    FileInputStream fileInputStream = new FileInputStream(path.toFile());
+                    FileOutputStream fileOutputStream = new FileOutputStream(output);
+                    fileOutputStream.write(fileInputStream.read());
+                    error("Failed to apply: " + path);
+                    if (report.getFailure() instanceof ParseException) {
+                        error(report.getFailure().getMessage());
                     } else {
-                        status.getFailure().printStackTrace();
+                        report.getFailure().printStackTrace();
                     }
                 }
 
@@ -92,8 +97,23 @@ public class ApplyPatchesetTask extends Task{
                     error("One or more patches failed to apply, see log for details");
                 }
 
-                log("Finished patching!");
+            }
+        }
+        log("Finished patching!");
+    }
 
+
+    //Stolen from the first result on google
+    private static void listAllFiles(Path currentPath, List<Path> allFiles) throws IOException
+    {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentPath))
+        {
+            for (Path entry : stream) {
+                if (Files.isDirectory(entry)) {
+                    listAllFiles(entry, allFiles);
+                } else {
+                    allFiles.add(entry);
+                }
             }
         }
     }

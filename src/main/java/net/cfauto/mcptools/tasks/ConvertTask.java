@@ -1,5 +1,6 @@
 package net.cfauto.mcptools.tasks;
 
+import com.cloudbees.diff.PatchException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -14,7 +15,7 @@ import java.io.IOException;
 
 public class ConvertTask extends Task{
     @Override
-    public void process(String[] args) throws IOException {
+    public void process(String[] args) throws IOException, PatchException {
         OptionParser parser = new OptionParser();
         OptionSpec<File> oldMapArg = parser.accepts("oldMap", "Original Mapping File").withRequiredArg().ofType(File.class).required();
         OptionSpec<File> newMapArg = parser.accepts("newMap", "New Mapping File").withRequiredArg().ofType(File.class).required();

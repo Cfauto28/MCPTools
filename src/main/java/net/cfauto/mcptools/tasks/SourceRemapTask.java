@@ -1,5 +1,6 @@
 package net.cfauto.mcptools.tasks;
 
+import com.cloudbees.diff.PatchException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -14,13 +15,10 @@ import org.cadixdev.mercury.remapper.MercuryRemapper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class SourceRemapTask extends Task{
     @Override
-    public void process(String[] args) throws IOException {
+    public void process(String[] args) throws IOException, PatchException {
         OptionParser parser = new OptionParser();
         OptionSpec<File> oldDirArg = parser.accepts("oldDir", "Directory to remap").withRequiredArg().ofType(File.class).required();
         OptionSpec<File> newDirArg = parser.accepts("newDir", "Directory to remap to").withRequiredArg().ofType(File.class).required();
