@@ -14,6 +14,9 @@ import org.cadixdev.mercury.remapper.MercuryRemapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class SourceRemapTask extends Task{
     @Override
@@ -24,6 +27,8 @@ public class SourceRemapTask extends Task{
         OptionSpec<File> mapFileArg = parser.accepts("map", "Mappings file to use").withRequiredArg().ofType(File.class).required();
         OptionSpec<String> fromNamespaceArg = parser.accepts("fromNamespace", "Original namespace").withRequiredArg().ofType(String.class).required();
         OptionSpec<String> toNamespaceArg = parser.accepts("toNamespace", "Namespace to remap to").withRequiredArg().ofType(String.class).required();
+//      TODO: Classpath support
+//      parser.accepts("lib", "Classpath libraries, separated by :").withRequiredArg().withValuesSeparatedBy(":");
 
         //These are set to null because even if we exit, if they aren't set ,idea complains
         File oldDir = null;
@@ -31,8 +36,7 @@ public class SourceRemapTask extends Task{
         File mapFile = null;
         String fromNamespace = null;
         String toNamespace = null;
-//      TODO: Support classpath (need to look into joptsimple options for lists)
-//      File classpath = null;
+//      List<File> classpath = null;
 
         try {
             OptionSet options = parser.parse(args);
@@ -41,7 +45,7 @@ public class SourceRemapTask extends Task{
             mapFile = options.valueOf(mapFileArg);
             fromNamespace = options.valueOf(fromNamespaceArg);
             toNamespace = options.valueOf(toNamespaceArg);
-//          classpath = options.valueOf(classpathArg);
+//          classpath = (List<File>) options.valueOf("lib");
 
         } catch (Exception ex) {
             parser.printHelpOn(System.out);
@@ -54,15 +58,15 @@ public class SourceRemapTask extends Task{
         IMappingProvider mappingProvider = TinyUtils.createMappingProvider(tree, fromNamespace, toNamespace);
 
         if (!newDir.exists() || !newDir.isDirectory()) {
-            throw new RuntimeException("Input must be a directory!");
+            error("Input must be a directory!");
         }
 
         if (!oldDir.exists()) {
-            if (!oldDir.mkdirs()) {
-                throw new RuntimeException("Creating output directory failed!");
+            if (!oldDir.mkdir()) {
+                error("Creating output directory failed!");
             }
         } else if (!oldDir.isDirectory()) {
-            throw new RuntimeException("Output must be a directory!");
+            error("Output must be a directory!");
         }
 
         log("Remapping...");
@@ -70,12 +74,12 @@ public class SourceRemapTask extends Task{
             Mercury mercury = new Mercury();
 /*          if (classpath != null) {
                 for (File file : classpath)
-                mercury.getClassPath().addAll(classpath)
+                    mercury.getClassPath().add(file.toPath());
             }*/
             mercury.getProcessors().add(MercuryRemapper.create(TinyRemapper.newRemapper().withMappings(mappingProvider).build().getEnvironment()));
             mercury.rewrite(newDir.toPath(), oldDir.toPath());
         } catch (Exception ex) {
-            error("Failed to remap source" + ex);
+            error("Failed to remap source: " + ex);
         }
     }
 }

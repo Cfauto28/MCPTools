@@ -1,5 +1,6 @@
 package net.cfauto.mcptools;
 
+import com.cloudbees.diff.PatchException;
 import net.cfauto.mcptools.tasks.Tasks;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
  Stolen from Installer Tools
  */
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, PatchException {
         Tasks task = null;
         String valid = Arrays.stream(Tasks.class.getEnumConstants()).map(Enum::name).collect(Collectors.joining(", "));
         List<String> extra = new ArrayList<>();
@@ -34,7 +35,7 @@ public class Main {
             error("Must specify task using --task, known values: " + valid);
         }
 
-        log("Selected Task:" + task.name());
+        log("Selected Task: " + task.name());
         task.get().process(extra.toArray(new String[extra.size()]));
     }
 

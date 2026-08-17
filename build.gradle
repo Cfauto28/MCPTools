@@ -19,7 +19,7 @@ dependencies {
     shadow(implementation("net.fabricmc:mercury:0.6.0"))
     shadow(implementation('net.sf.jopt-simple:jopt-simple:6.0-alpha-3'))
     shadow(implementation("net.fabricmc:mapping-io:0.9.1"))
-//  shadow(implementation("com.cloudbees:diff4j:1.3"))
+    shadow(implementation("com.cloudbees:diff4j:1.3"))
 }
 
 jar {

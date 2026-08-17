@@ -18,7 +18,7 @@ public class ConvertTask extends Task{
         OptionParser parser = new OptionParser();
         OptionSpec<File> oldMapArg = parser.accepts("oldMap", "Original Mapping File").withRequiredArg().ofType(File.class).required();
         OptionSpec<File> newMapArg = parser.accepts("newMap", "New Mapping File").withRequiredArg().ofType(File.class).required();
-        OptionSpec<MappingFormat> oldTypeArg = parser.accepts("oldType", "Old Mapping Format").withRequiredArg().ofType(MappingFormat.class).required();
+        OptionSpec<MappingFormat> oldTypeArg = parser.accepts("oldType", "Old Mapping Format").withRequiredArg().ofType(MappingFormat.class);
         OptionSpec<MappingFormat> newTypeArg = parser.accepts("newType", "New Mapping Format").withRequiredArg().ofType(MappingFormat.class).required();
 
         //These are set to null because even if we exit if they aren't set idea complains
@@ -39,6 +39,10 @@ public class ConvertTask extends Task{
             ex.printStackTrace();
         }
 
+        if (oldFormat == null) {
+            oldFormat = MappingReader.detectFormat(oldMap.toPath());
+        }
+
         try {
             VisitableMappingTree tree = new MemoryMappingTree();
             log("Reading mapping file " + newMap + " of type " + oldFormat);
@@ -47,7 +51,7 @@ public class ConvertTask extends Task{
             tree.accept(MappingWriter.create(newMap.toPath(), newFormat));
             log("Converted mappings successfully");
         } catch (Exception ex) {
-            error("Failed to convert mappings:" + ex);
+            error("Failed to convert mappings: " + ex);
         }
     }
 }

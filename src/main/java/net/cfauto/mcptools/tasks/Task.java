@@ -1,13 +1,15 @@
 package net.cfauto.mcptools.tasks;
 
 
+import com.cloudbees.diff.PatchException;
+
 import java.io.IOException;
 
 /*
  Stolen from Installer Tools
  */
 public abstract class Task {
-    public abstract void process(String[] args) throws IOException;
+    public abstract void process(String[] args) throws IOException, PatchException;
 
     protected void error(String message) {
         log(message);
