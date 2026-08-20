@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  Stolen from Installer Tools
  */
 public class Main {
-    public static void main(String[] args) throws IOException, PatchException {
+    public static void main(String[] args) throws Exception {
         Tasks task = null;
         String valid = Arrays.stream(Tasks.class.getEnumConstants()).map(Enum::name).collect(Collectors.joining(", "));
         List<String> extra = new ArrayList<>();

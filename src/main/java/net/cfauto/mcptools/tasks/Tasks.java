@@ -10,8 +10,6 @@ public enum Tasks {
     SOURCE_REMAP(SourceRemapTask::new),
     CONVERT_MAPPINGS(ConvertTask::new),
     APPLY_PATCHSET(ApplyPatchesetTask::new);
-//  MAKE_PATCHSET(MakePatchsetTask::new);
-
 
     private Supplier<? extends Task> supplier;
 

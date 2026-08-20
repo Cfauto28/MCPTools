@@ -5,7 +5,10 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.MappingWriter;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
+import net.fabricmc.mappingio.adapter.MappingNsCompleter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.mappingio.tree.VisitableMappingTree;
@@ -15,11 +18,10 @@ import java.io.IOException;
 
 public class ConvertTask extends Task{
     @Override
-    public void process(String[] args) throws IOException, PatchException {
+    public void process(String[] args) throws IOException {
         OptionParser parser = new OptionParser();
         OptionSpec<File> oldMapArg = parser.accepts("oldMap", "Original Mapping File").withRequiredArg().ofType(File.class).required();
         OptionSpec<File> newMapArg = parser.accepts("newMap", "New Mapping File").withRequiredArg().ofType(File.class).required();
-        OptionSpec<MappingFormat> oldTypeArg = parser.accepts("oldType", "Old Mapping Format").withRequiredArg().ofType(MappingFormat.class);
         OptionSpec<MappingFormat> newTypeArg = parser.accepts("newType", "New Mapping Format").withRequiredArg().ofType(MappingFormat.class).required();
 
         //These are set to null because even if we exit if they aren't set idea complains
@@ -32,7 +34,6 @@ public class ConvertTask extends Task{
             OptionSet options = parser.parse(args);
             oldMap = options.valueOf(oldMapArg);
             newMap = options.valueOf(newMapArg);
-            oldFormat = options.valueOf(oldTypeArg);
             newFormat = options.valueOf(newTypeArg);
 
         } catch (Exception ex) {
@@ -40,9 +41,7 @@ public class ConvertTask extends Task{
             ex.printStackTrace();
         }
 
-        if (oldFormat == null) {
-            oldFormat = MappingReader.detectFormat(oldMap.toPath());
-        }
+        oldFormat = MappingReader.detectFormat(oldMap.toPath());
 
         try {
             VisitableMappingTree tree = new MemoryMappingTree();

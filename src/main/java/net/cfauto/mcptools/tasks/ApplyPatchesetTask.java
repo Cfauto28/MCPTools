@@ -60,13 +60,13 @@ public class ApplyPatchesetTask extends Task{
         }
 
 
-        listAllFiles(patchesDir.toPath(), patchFiles);
+        recurseDirectory(patchesDir.toPath(), patchFiles);
         log(patchFiles.toString());
         boolean failed = false;
         log("Started Patching");
         for (Path path : patchFiles) {
-            log("Started patching: " + path);
-            if (path.toString().endsWith(".patch")) {//TODO: Find out how to make this work
+            if (path.toString().endsWith(".patch")) {
+                log("Started patching: " + path);
                 ContextualPatch patch = ContextualPatch.create(path.toFile(), target);
                 ContextualPatch.PatchReport report = patch.patch(false).iterator().next();
                 log("Patched: " + path);
@@ -100,21 +100,5 @@ public class ApplyPatchesetTask extends Task{
             }
         }
         log("Finished patching!");
-    }
-
-
-    //Stolen from the first result on google
-    private static void listAllFiles(Path currentPath, List<Path> allFiles) throws IOException
-    {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(currentPath))
-        {
-            for (Path entry : stream) {
-                if (Files.isDirectory(entry)) {
-                    listAllFiles(entry, allFiles);
-                } else {
-                    allFiles.add(entry);
-                }
-            }
-        }
     }
 }
